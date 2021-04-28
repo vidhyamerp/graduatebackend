@@ -23,7 +23,12 @@ Route::get('/', function () {
     return view('upload');
 });
 // Route::post('/api/store',[RegisterController::class, 'store']);
+
+//authenicate
+Route::post('/api/login', 'RegisterController@login');
+
 Route::post('/api/store', 'RegisterController@store');
+Route::post('/api/storeuser', 'RegisterController@storeuser');
 Route::get('/api/selected', 'RegisterController@selected');
 Route::get('/api/rejected', 'RegisterController@rejected');
 Route::get('/api/downloadPDF/{id}','CommonController@downloadPDF');

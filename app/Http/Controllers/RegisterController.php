@@ -8,6 +8,9 @@ use Validator;
 use Barryvdh\DomPDF\Facade as PDF;
 use Illuminate\Support\Facades\Storage;
 use File;
+use App\User;
+use Auth;
+use Hash;
 use Intervention\Image\Facades\Image;
 use App\Http\CustomHelper;
 class RegisterController extends Controller
@@ -195,4 +198,49 @@ class RegisterController extends Controller
     {
         //
     }
+    public function storeuser(Request $request)
+    {
+        $json = [];
+        $validator = Validator::make($request->all(), [
+            'name' => 'required',
+            'mobile_no' => 'required|unique:users,mobile_no,',
+            'email' => 'required|unique:users,email,',
+            'password' => 'required',
+        ]);
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            return response()->json(['errors'=>$errors]);
+        }
+        $store = new User();
+        $store->name = $request->name;
+        $store->mobile_no = $request->mobile_no;
+        $store->email = $request->email;
+        $store->password =  Hash::make($request->password);
+        $store->save();
+        $json['data'] = $store;
+        $json['success'] = true;
+        return response($json);
+    }
+    public function login(Request $request)
+    {
+        $json= [];
+        $request->validate([
+            'email' => 'required|string|email',
+            'password' => 'required|string',
+        ]);
+        $credentials = $request->only('email', 'password');
+          $id = User::where('email',$request->post('email'))->first();
+          // $this->swapping($id);
+          // return  $this->swapping($id);
+          $remember = $request->has('remember_token') ? true : false;
+          if ($id) {
+              $json['data'] = $id;
+              $json['success'] = true;
+            return response($json);
+           }
+           else{
+            $json['falied'] = true;
+            return response($json);
+           }
+        }
 }
