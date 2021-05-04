@@ -30,6 +30,8 @@ Route::post('/api/store', 'RegisterController@store');
 Route::post('/api/save', 'RegisterController@save');
 Route::get('/api/edit/{id}', 'RegisterController@edit');
 Route::get('/api/get/{id}', 'RegisterController@show');
+
+Route::post('/api/store', 'RegisterController@store');
 Route::post('/api/storeuser', 'RegisterController@storeuser');
 Route::get('/api/selected', 'RegisterController@selected');
 Route::get('/api/rejected', 'RegisterController@rejected');
