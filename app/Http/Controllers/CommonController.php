@@ -22,7 +22,15 @@ class CommonController extends Controller
         return response()->json(['file' => $file], 201);
      }
 
-    public function downloadPDF($id) {
+    public function downloadPDF($id) { 
+            $json = [];
+            $api_url = env('APP_URL');
+            $show = Graduates::where('user_id',$id)->first();
+            $pdf = PDF::loadView('pdf',compact('show'));
+        //    return view('pdf',compact('show'));
+            return $pdf->stream($show->name.'_'.$show->application_no.'.pdf');      
+    }
+    public function downloadIndividual($id) { 
             $json = [];
             $api_url = env('APP_URL');
             $show = Graduates::find($id);
@@ -47,7 +55,8 @@ class CommonController extends Controller
           $json = [];
           $get = '';
         //   return $request->file('file')->getSize();
-          $api_url = "http://budca.in/links/";
+        //   $api_url = "http://budca.in/links/";
+          $api_url = env('API_URL');
           $validator = Validator::make($request->all(), [
             'file' => 'max:50',
         ]);
@@ -118,5 +127,9 @@ class CommonController extends Controller
         }
         return response()->download(storage_path('app/public'));
 
+    }
+    public function fetch($id){
+        $get = Graduates::where('id',$id)->first();
+        return response($get);
     }
 }

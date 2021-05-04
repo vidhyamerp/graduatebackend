@@ -78,7 +78,7 @@
             @endif
 
             <div class="links">
-                 <form action="/api/upload" method="POST" enctype="multipart/form-data">
+                 <form action="{{route('extract')}}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="row">
 
