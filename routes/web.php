@@ -23,19 +23,31 @@ Route::get('/', function () {
     return view('upload');
 });
 // Route::post('/api/store',[RegisterController::class, 'store']);
+
+//authenicate
+Route::post('/api/login', 'RegisterController@login');
 Route::post('/api/store', 'RegisterController@store');
+Route::post('/api/save', 'RegisterController@save');
+Route::get('/api/edit/{id}', 'RegisterController@edit');
+Route::get('/api/get/{id}', 'RegisterController@show');
+Route::post('/api/storeuser', 'RegisterController@storeuser');
 Route::get('/api/selected', 'RegisterController@selected');
 Route::get('/api/rejected', 'RegisterController@rejected');
 Route::get('/api/downloadPDF/{id}','CommonController@downloadPDF');
-
+Route::get('/api/downloadIndividual/{id}','CommonController@downloadIndividual');
 Route::post('/api/savefile',  'CommonController@store');
 
 Route::get('/api/upload', 'CommonController@showUploadForm');
 Route::post('/api/upload', 'CommonController@storeUploads');
-
+Route::get('/api/fetch/{id}', 'CommonController@fetch');
 Route::resource('contacts', 'ContactController');
 
 Route::get('/api/piechart','CommonController@piechart');
 Route::get('/api/piechart1','CommonController@piechart1');
 
 Route::get('api/bulkdownload','CommonController@bulkdownload');
+
+//aadhar verification 
+
+Route::post('/api/aadharupload', 'RegisterController@aadharupload');
+Route::get('/api/extract', 'RegisterController@extract');
