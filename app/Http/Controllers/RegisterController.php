@@ -12,6 +12,7 @@ use App\User;
 use Auth;
 use Hash;
 use ZipArchive;
+use App\Model\AadharValidate;
 use Intervention\Image\Facades\Image;
 use App\Http\CustomHelper;
 class RegisterController extends Controller
@@ -342,6 +343,7 @@ class RegisterController extends Controller
         return response($json);
     }
     public function extract(Request $request){
+        $json = [];
         // $zip = new ZipArchive();
         // $file =  env('STORAGE_PATH').'offlinezips/'.$request->file_name;
         // if ($zip->open($file) === true) {
@@ -349,15 +351,42 @@ class RegisterController extends Controller
         //     $zip->extractTo(env('STORAGE_PATH').'extract');
         //     $zip->close();
         // }
-        // $path_parts = pathinfo( $file);
+        // $path_parts = pathinfo( $file);\
+        if($request->file_name != 'undefined'){
         $xmlString = file_get_contents(env('STORAGE_PATH').'extract/'.$request->file_name);
-        $xmlObject = simplexml_load_string($xmlString);       
-        $json = json_encode($xmlObject);    
-        return $json;  
-        if($request->aadhar){
-            return  $json['data'] = 'Aadhar Verified Succesfully';
-        }  
-      
+        $xmlObject = json_encode(simplexml_load_string($xmlString));       
+        $users = json_decode($xmlObject,true);
+        $store = AadharValidate::where('user_id',$request->user_id)->first();
+        if(!$store){
+        $store = new AadharValidate();
+        }
+        $store->user_id = $request->user_id;
+        $store->aadhar_no = $request->aadhar;
+        $store->dob = $users['UidData']['Poi']['@attributes']['dob'];
+        $store->gender = $users['UidData']['Poi']['@attributes']['gender'];
+        $store->name  = $users['UidData']['Poi']['@attributes']['name'];
+        $string = $users['UidData']['Poa']['@attributes']['careof'];
+        $position = strpos($string, ":");
+        $careof = substr($string,intval($position)+1);
+        $store->careof =  $careof;
+        $relation = strstr($string, ':', true);
+        $store->relation = $relation;
+        $store->country =  $users['UidData']['Poa']['@attributes']['country'];
+        $store->dist =  $users['UidData']['Poa']['@attributes']['dist'];
+        $store->house =  $users['UidData']['Poa']['@attributes']['house'];
+        $store->pc =  $users['UidData']['Poa']['@attributes']['pc'];
+        $store->state =  $users['UidData']['Poa']['@attributes']['state'];
+        $store->street =  $users['UidData']['Poa']['@attributes']['street'];
+        $store->city =  $users['UidData']['Poa']['@attributes']['subdist'];
+        $store->save();
+        $json['data'] =   $store;
+        $json['validate'] = true;
+        return response( $json);
+        }
+        else{
+            $json['failed'] = true;
+            return response( $json);
+        }      
     }
     public function aadharupload(Request $request){
         $json = [];
