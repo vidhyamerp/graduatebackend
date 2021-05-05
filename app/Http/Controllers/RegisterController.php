@@ -76,6 +76,7 @@ class RegisterController extends Controller
             'aadhar_number' => 'required|unique:registration_details,aadhar_number,',
             'mobile_no' => 'required|unique:registration_details,mobile_no,',
             'mail_id' => 'required|unique:registration_details,mail_id,',
+            
         ]);
 
         if ($validator->fails()) {
@@ -140,7 +141,7 @@ class RegisterController extends Controller
         $store->date = $request->input('date');
         $store->dd_check = $request->input('dd_check');
         $store->district = $request->input('districts');
-        $store->date_of_birth = $request->input('date_of_birth');
+        $store->dob = $request->input('dob');
         $store->address_proof = $request->input('address_proof');
         $store->aadhar_proof = $request->input('aadhar_proof');
         $store->deg_provitional_cerificate = $request->input('deg_provitional_cerificate');
@@ -327,7 +328,7 @@ class RegisterController extends Controller
         $store->dd_check = $request->input('dd_check');
         $store->certificate_decl = $request->input('certificate_decl');
         $store->district = $request->input('districts');
-        $store->date_of_birth = $request->input('date_of_birth');
+        $store->dob = $request->input('dob');
         $store->address_proof = $request->input('address_proof');
         $store->aadhar_proof = $request->input('aadhar_proof');
         $store->deg_provitional_cerificate = $request->input('deg_provitional_cerificate');
@@ -341,19 +342,22 @@ class RegisterController extends Controller
         return response($json);
     }
     public function extract(Request $request){
-        return $request->file;
-        $zip = new ZipArchive();
-        if ($zip->open('offlineaadhaar20210502074138346.zip') === true) {
-            $zip->extractTo(public_path('extract'));
-            $zip->close();
-        }
-        $xmlString = file_get_contents(public_path('extract/offlineaadhaar20210502074138346.xml'));
-        $xmlObject = simplexml_load_string($xmlString);
-                   
-        $json = json_encode($xmlObject);
-        $phpArray = json_decode($json, true); 
-          
-       return  $phpArray;
+        // $zip = new ZipArchive();
+        // $file =  env('STORAGE_PATH').'offlinezips/'.$request->file_name;
+        // if ($zip->open($file) === true) {
+        //     $zip->setPassword($request->password);
+        //     $zip->extractTo(env('STORAGE_PATH').'extract');
+        //     $zip->close();
+        // }
+        // $path_parts = pathinfo( $file);
+        $xmlString = file_get_contents(env('STORAGE_PATH').'extract/'.$request->file_name);
+        $xmlObject = simplexml_load_string($xmlString);       
+        $json = json_encode($xmlObject);    
+        return $json;  
+        if($request->aadhar){
+            return  $json['data'] = 'Aadhar Verified Succesfully';
+        }  
+      
     }
     public function aadharupload(Request $request){
         $json = [];
@@ -373,8 +377,8 @@ class RegisterController extends Controller
         {
             $file = $request->file('file');
             $originalname = $file->getClientOriginalName();
-            $get = 'storage/app/public/offlinezips'.'/'.$originalname;
-            $path = $file->storeAs('public/offlinezips', $originalname);
+            $get = 'storage/app/public/extract'.'/'.$originalname;
+            $path = $file->storeAs('public/extract', $originalname);
         }
         $file_path = $api_url.$get;
         $json['sucess'] = true;
