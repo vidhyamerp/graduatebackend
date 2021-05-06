@@ -230,6 +230,7 @@ return [
         'PDF' => Barryvdh\DomPDF\Facade::class,
         'Image' => Intervention\Image\Facades\Image::class,
         'Zipper'  => Chumper\Zipper\Facades\Zipper::class,
+        'Carbon' => Carbon\Carbon::class,
     ],
 
 ];

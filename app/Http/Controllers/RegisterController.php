@@ -85,6 +85,33 @@ class RegisterController extends Controller
             return response()->json(['errors'=>$errors]);
         }
       }
+      if($request->id){
+        $validator = Validator::make($request->all(), [
+            'aadhar_number' => 'required',
+            'mobile_no' => 'required',
+            'mail_id' => 'required',
+            'father_or_husband_name' => 'required',
+            'present_address' => 'required',
+            'declaration' => 'required',
+            'gender' => 'required',
+            'occupation' => 'required',
+            'name_of_degree' => 'required',
+            'name_of_university' => 'required',
+            'year_of_passing' => 'required',
+            'dob' => 'required',
+            'address_proof' => 'required',
+            'aadhar_proof' => 'required',
+            'signature' => 'required',
+            'deg_provitional_cerificate' => 'required',
+            'photo' => 'required',
+            
+        ]);
+
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            return response()->json(['errors'=>$errors]);
+        }
+      }
         foreach($request->get('present_address') as $a)
          {    
             foreach($a as $b=>$c)
@@ -105,17 +132,17 @@ class RegisterController extends Controller
          {    
                 $string3 .= $a.',';
         }
-        $degree = $string3;
-        foreach($request->get('name_of_university') as $a)
-         {    
-                $string4 .= $a.',';
-        }
-        $university = $string4;
-        foreach($request->get('year_of_passing') as $a)
-        {    
-               $string5 .= $a.',';
-       }
-       $year_pass = $string5;
+    //     $degree = $string3;
+    //     foreach($request->get('name_of_university') as $a)
+    //      {    
+    //             $string4 .= $a.',';
+    //     }
+    //     $university = $string4;
+    //     foreach($request->get('year_of_passing') as $a)
+    //     {    
+    //            $string5 .= $a.',';
+    //    }
+    //    $year_pass = $string5;
         if(!$request->id){
             $store = new Graduates();
         }
@@ -131,9 +158,9 @@ class RegisterController extends Controller
         $store->mail_id = $request->input('mail_id');
         $store->gender = $request->input('gender');
         $store->occupation = $request->input('occupation');
-        $store->degree_name =   strtoupper($degree);
-        $store->university =  strtoupper($university);
-        $store->year_of_passing =  $year_pass ;
+        $store->degree_name =   $request->get('name_of_degree');
+        $store->university = $request->get('name_of_university');
+        $store->year_of_passing = $request->get('year_of_passing');
         $store->residential_add =  $res_address;
         $store->certificate_decl = $request->input('certificate_decl');
         $store->challan_no = $request->input('challan_no');
@@ -142,7 +169,7 @@ class RegisterController extends Controller
         $store->date = $request->input('date');
         $store->dd_check = $request->input('dd_check');
         $store->district = $request->input('districts');
-        $store->dob = $request->input('dob');
+        $store->dob = date("d-m-Y", strtotime($request->input('dob')));
         $store->address_proof = $request->input('address_proof');
         $store->aadhar_proof = $request->input('aadhar_proof');
         $store->deg_provitional_cerificate = $request->input('deg_provitional_cerificate');
@@ -191,6 +218,10 @@ class RegisterController extends Controller
     {
         $json = [];
         $edit = Graduates::where('user_id',$id)->first();
+        $json['degree_name'] = json_decode($edit->degree_name,true);
+        $json['university'] = json_decode($edit->university,true);
+        $json['year_of_passing'] = json_decode($edit->year_of_passing,true);
+        
         $json['data'] = $edit;
         $json['success'] = true;
         return response($json);
@@ -288,20 +319,20 @@ class RegisterController extends Controller
             }
         }
         $res_address = substr($string2,0,-1);
-        foreach($request->get('name_of_degree') as $a)
-         {    
-                $string3 .= $a.',';
-        }
-        $degree = $string3;
-        foreach($request->get('name_of_university') as $a)
-         {    
-                $string4 .= $a.',';
-        }
-        $university = $string4;
-        foreach($request->get('year_of_passing') as $a)
-         {    
-                $string5 .= $a.',';
-        }
+        // foreach($request->get('name_of_degree') as $a)
+        //  {    
+        //         $string3 .= $a.',';
+        // }
+        // $degree = $string3;
+        // foreach($request->get('name_of_university') as $a)
+        //  {    
+        //         $string4 .= $a.',';
+        // }
+        // $university = $string4;
+        // foreach($request->get('year_of_passing') as $a)
+        //  {    
+        //         $string5 .= $a.',';
+        // }
         $year_of_passing = $string5;
       $store = Graduates::where('user_id',$request->user_id)->first();
         if(!$store){
@@ -318,9 +349,9 @@ class RegisterController extends Controller
         $store->mail_id = $request->input('mail_id');
         $store->gender = $request->input('gender');
         $store->occupation = $request->input('occupation');
-        $store->degree_name =   $degree;
-        $store->university =  $university;
-        $store->year_of_passing = $year_of_passing;
+        $store->degree_name =   $request->get('name_of_degree');
+        $store->university = $request->get('name_of_university');
+        $store->year_of_passing = $request->get('year_of_passing');
         $store->residential_add =  $res_address;
         $store->challan_no = $request->input('challan_no');
         $store->amount = $request->input('amount');
@@ -329,7 +360,7 @@ class RegisterController extends Controller
         $store->dd_check = $request->input('dd_check');
         $store->certificate_decl = $request->input('certificate_decl');
         $store->district = $request->input('districts');
-        $store->dob = $request->input('dob');
+        $store->dob = date("d-m-Y", strtotime($request->input('dob')));
         $store->address_proof = $request->input('address_proof');
         $store->aadhar_proof = $request->input('aadhar_proof');
         $store->deg_provitional_cerificate = $request->input('deg_provitional_cerificate');
@@ -413,6 +444,21 @@ class RegisterController extends Controller
         $json['sucess'] = true;
         $json['data'] =  $file_path;
         $json['file_name'] =  $originalname;
+        return response($json);
+    }
+    public function reset(Request $request){
+        $json = [];
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+        ]);
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            return response()->json(['errors'=>$errors]);
+        }
+        $find = User::where('email',$request->email)->first();
+        $find->password = Hash::make($request->reset_pwd);
+        $find->save();
+        $json['success'] = true;
         return response($json);
     }
 }
