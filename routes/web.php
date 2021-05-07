@@ -48,10 +48,19 @@ Route::get('/api/piechart1','CommonController@piechart1');
 
 Route::get('api/bulkdownload','CommonController@bulkdownload');
 
+Route::get('api/select','CommonController@select');
+Route::get('api/reject','CommonController@reject');
 //aadhar verification 
 
 Route::post('/api/aadharupload', 'RegisterController@aadharupload');
 Route::get('/api/extract', 'RegisterController@extract');
+Route::get('/api/index', 'RegisterController@index');
 
 //password reset
 Route::post('/api/resetpwd', 'RegisterController@reset');
+
+//payment gateway
+Route::get('/api/payment', 'RegisterController@payment')->name('payment');
+
+//Email OTP
+Route::post('/api/verifiy',  'RegisterController@sendotp');

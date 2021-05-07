@@ -9,6 +9,7 @@ use Barryvdh\DomPDF\Facade as PDF;
 use Illuminate\Support\Facades\Storage;
 use File;
 use App\User;
+use App\Model\OTPVerify;
 use Auth;
 use Hash;
 use ZipArchive;
@@ -104,6 +105,7 @@ class RegisterController extends Controller
             'signature' => 'required',
             'deg_provitional_cerificate' => 'required',
             'photo' => 'required',
+            'dd_image' => 'required',
             
         ]);
 
@@ -169,7 +171,7 @@ class RegisterController extends Controller
         $store->date = $request->input('date');
         $store->dd_check = $request->input('dd_check');
         $store->district = $request->input('districts');
-        $store->dob = date("d-m-Y", strtotime($request->input('dob')));
+        $store->dob = $request->input('dob');
         $store->address_proof = $request->input('address_proof');
         $store->aadhar_proof = $request->input('aadhar_proof');
         $store->deg_provitional_cerificate = $request->input('deg_provitional_cerificate');
@@ -266,7 +268,7 @@ class RegisterController extends Controller
         $store->name = $request->name;
         $store->mobile_no = $request->mobile_no;
         $store->email = $request->email;
-        $store->password =  Hash::make($request->password);
+        $store->password = $request->password;
         $store->save();
         $json['data'] = $store;
         $json['success'] = true;
@@ -280,9 +282,7 @@ class RegisterController extends Controller
             'password' => 'required|string',
         ]);
         $credentials = $request->only('email', 'password');
-          $id = User::where('email',$request->post('email'))->first();
-          // $this->swapping($id);
-          // return  $this->swapping($id);
+          $id = User::where('email',$request->post('email'))->where('password',$request->post('password'))->first();
           $remember = $request->has('remember_token') ? true : false;
           if ($id) {
               $json['data'] = $id;
@@ -360,7 +360,7 @@ class RegisterController extends Controller
         $store->dd_check = $request->input('dd_check');
         $store->certificate_decl = $request->input('certificate_decl');
         $store->district = $request->input('districts');
-        $store->dob = date("d-m-Y", strtotime($request->input('dob')));
+        $store->dob =$request->input('dob');
         $store->address_proof = $request->input('address_proof');
         $store->aadhar_proof = $request->input('aadhar_proof');
         $store->deg_provitional_cerificate = $request->input('deg_provitional_cerificate');
@@ -448,17 +448,54 @@ class RegisterController extends Controller
     }
     public function reset(Request $request){
         $json = [];
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-        ]);
-        if ($validator->fails()) {
-            $errors = $validator->errors();
-            return response()->json(['errors'=>$errors]);
-        }
+        $success = OTPVerify::where('otp',$request->otp)->first();
+        if($success){
         $find = User::where('email',$request->email)->first();
-        $find->password = Hash::make($request->reset_pwd);
+        $find->password = $request->reset_pwd;
         $find->save();
         $json['success'] = true;
+        $json['data'] = $find;
+        }else{
+            $json['failed'] = true;
+        }
+        return response($json);
+    }
+    public function payment(){
+       return view('payment.payment');
+    }
+    public function sendotp(Request $request){
+        $json = [];
+        $length = 6;
+        $chars = 'bcdfghjklmnprstvwxzaeiou0123456789';
+        $result = '';
+        $find = User::where('email',$request->email)->first();
+        if($find){
+        for ($p = 0; $p < $length; $p++)
+        {
+            $result .= ($p%2) ? $chars[mt_rand(19, 23)] : $chars[mt_rand(0, 18)];
+        }
+    
+        $otp = strtoupper($result);
+        $otpdata = OTPVerify::where('email',$request->email)->first();
+        if(!$otpdata){
+            $otpdata = new OTPVerify();
+        }
+        $otpdata->email = $request->email;
+        $otpdata->otp = $otp;
+        $otpdata->status = 1;
+        $otpdata->save();
+        $details = [
+            'title' => 'Mail from Bharathiar University For Graduate registration',
+            'body' => 'Your OTP is ' .$otp. '',
+        ];
+       
+        \Mail::to($request->email)->send(new \App\Mail\MyTestMail($details));
+        $json['success'] = true;
+        $json['data'] = $otpdata->status;
+    }
+    else{
+        $json['error'] = 'This Email is not Registered with us.';
+    }
         return response($json);
     }
 }
