@@ -220,10 +220,11 @@ class RegisterController extends Controller
     {
         $json = [];
         $edit = Graduates::where('user_id',$id)->first();
+        if($edit){
         $json['degree_name'] = json_decode($edit->degree_name,true);
         $json['university'] = json_decode($edit->university,true);
         $json['year_of_passing'] = json_decode($edit->year_of_passing,true);
-        
+        }
         $json['data'] = $edit;
         $json['success'] = true;
         return response($json);
@@ -269,6 +270,7 @@ class RegisterController extends Controller
         $store->mobile_no = $request->mobile_no;
         $store->email = $request->email;
         $store->password = $request->password;
+        $store->role = 'graduant';
         $store->save();
         $json['data'] = $store;
         $json['success'] = true;
@@ -349,9 +351,11 @@ class RegisterController extends Controller
         $store->mail_id = $request->input('mail_id');
         $store->gender = $request->input('gender');
         $store->occupation = $request->input('occupation');
+        if($request->get('name_of_degree') && $request->get('name_of_university') && $request->get('year_of_passing')){
         $store->degree_name =   $request->get('name_of_degree');
         $store->university = $request->get('name_of_university');
         $store->year_of_passing = $request->get('year_of_passing');
+        }
         $store->residential_add =  $res_address;
         $store->challan_no = $request->input('challan_no');
         $store->amount = $request->input('amount');
