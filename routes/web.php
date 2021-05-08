@@ -64,3 +64,5 @@ Route::get('/api/payment', 'RegisterController@payment')->name('payment');
 
 //Email OTP
 Route::post('/api/verifiy',  'RegisterController@sendotp');
+
+Route::post('/api/reg_otp',  'RegisterController@sendregotp');

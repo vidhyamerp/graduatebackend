@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Storage;
 use File;
 use App\User;
 use App\Model\OTPVerify;
+use App\Model\RegOTP;
 use Auth;
 use Hash;
 use ZipArchive;
@@ -264,6 +265,8 @@ class RegisterController extends Controller
             $errors = $validator->errors();
             return response()->json(['errors'=>$errors]);
         }
+        $find = RegOTP::where('email',$request->email)->where('otp',$request->otp)->first();
+        if($find){
         $store = new User();
         $store->name = $request->name;
         $store->mobile_no = $request->mobile_no;
@@ -273,6 +276,10 @@ class RegisterController extends Controller
         $store->save();
         $json['data'] = $store;
         $json['success'] = true;
+        }
+        else{
+            $json['failed'] = true;
+        }
         return response($json);
     }
     public function login(Request $request)
@@ -499,6 +506,34 @@ class RegisterController extends Controller
     else{
         $json['error'] = 'This Email is not Registered with us.';
     }
+        return response($json);
+    }
+    public function sendregotp(Request $request){
+        $json = [];
+        $length = 6;
+        $result = '';
+        $chars = 'bcdfghjklmnprstvwxzaeiou0123456789';
+        for ($p = 0; $p < $length; $p++)
+        {
+            $result .= ($p%2) ? $chars[mt_rand(19, 23)] : $chars[mt_rand(0, 18)];
+        }
+        $otp = strtoupper($result);
+        $reg = RegOTP::where('email',$request->email)->first();
+        if(!$reg){
+            $reg = new RegOTP();
+        }
+        $reg->email = $request->email;
+        $reg->otp = $otp;
+        $reg->status = 1;
+        $reg->save();
+        $details = [
+            'title' => 'Mail from Bharathiar University For Graduate registration',
+            'body' => 'Your OTP is ' .$otp. '',
+        ];
+       
+        \Mail::to($request->email)->send(new \App\Mail\MyTestMail($details));
+        $json['success'] = true;
+        $json['data'] = $reg->status;
         return response($json);
     }
 }
