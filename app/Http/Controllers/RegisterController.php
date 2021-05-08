@@ -105,7 +105,6 @@ class RegisterController extends Controller
             'signature' => 'required',
             'deg_provitional_cerificate' => 'required',
             'photo' => 'required',
-            'dd_image' => 'required',
             
         ]);
 
@@ -351,7 +350,7 @@ class RegisterController extends Controller
         $store->mail_id = $request->input('mail_id');
         $store->gender = $request->input('gender');
         $store->occupation = $request->input('occupation');
-        if($request->get('name_of_degree') && $request->get('name_of_university') && $request->get('year_of_passing')){
+        if($request->get('name_of_degree') != [""] && $request->get('name_of_university')!= [""] && $request->get('year_of_passing')!= [""]){
         $store->degree_name =   $request->get('name_of_degree');
         $store->university = $request->get('name_of_university');
         $store->year_of_passing = $request->get('year_of_passing');

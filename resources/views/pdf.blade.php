@@ -28,7 +28,7 @@
 
 <body>
     <div>
-    <?php $logo = env('IMAGE_LINK').env('STORAGE_PATH').'assets/logo_new.png'?>
+    <?php $logo = env('LOGO_LINK').'logo_new.png'?>
           <img src="{{$logo}}" style="padding-left:15%">   
     <p style="font-size:10px;padding-left:95px;"><b>State university | Re-accredited with "A" Grade By NACC  | Ranked 13th among Indian Universities by MHRD-NIRF</b></p>
     <h2 style="padding-left: 32%;padding-top:10px">Online Graduate Registration</h2>
@@ -147,6 +147,11 @@
   <div class="page-break"></div>
   <?php $degree = env('IMAGE_LINK').'images/'.$show->deg_provitional_cerificate; ?>
   <img src="{{$degree}}" >   
+  @endif
+  @if($show->dd_image	)
+  <div class="page-break"></div>
+  <?php $dd_image = env('IMAGE_LINK').'images/'.$show->dd_image; ?>
+  <img src="{{$dd_image}}" >   
   @endif
  </div>
 </body>
