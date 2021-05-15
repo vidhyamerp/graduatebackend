@@ -11,6 +11,9 @@ use File;
 use App\User;
 use App\Model\OTPVerify;
 use App\Model\RegOTP;
+use App\Model\RenewRegOTP;
+use App\Model\Renewal;
+use App\Model\RenewDetails;
 use Auth;
 use Hash;
 use ZipArchive;
@@ -26,23 +29,95 @@ class RegisterController extends Controller
      */
     public function selected()
     {
-        $get = Graduates::whereNotNull('photo');
-        $get = $get->orWhereNotNull('signature');
-        $get = $get->orWhereNotNull('deg_provitional_cerificate');
-        $get = $get->orWhereNotNull('aadhar_proof');
-        $get = $get->orWhereNotNull('signature');
+        $get = Graduates::where('remark_status','=',0)->get();
         $json['sucess'] = true;
-        $json['data'] =  $get->get();
+        $json['data'] =  $get;
         return response($json);
     }
 
+    public function remarks(Request $request)
+    {
+        $get = Graduates::where('id','=',$request->id)->first();
+        if($get){
+            $get->remark = $request->remarks;
+            $get->remark_status = 1;
+            $get->remark_person = $request->remark_person;
+            $get->save();
+            $json['success'] = true;
+            $json['data'] =  $get;
+        }
+         else{
+            $json['failed'] = true;
+         }
+        return response($json);
+    }
+    public function remarkrenewal(Request $request)
+    {
+        $get = RenewDetails::where('id','=',$request->id)->first();
+        if($get){
+            $get->remark = $request->remarks;
+            $get->remark_status = 1;
+            $get->remark_person = $request->remark_person;
+            $get->save();
+            $json['success'] = true;
+            $json['data'] =  $get;
+        }
+         else{
+            $json['failed'] = true;
+         }
+        return response($json);
+    }
+    public function accepted(Request $request)
+    {
+        $get = Graduates::where('id','=',$request->id)->first();
+        if($get){
+            $get->remark = $request->remarks;
+            $get->remark_status = 0;
+            $get->remark_person = $request->remark_person;
+            $get->save();
+            $json['success'] = true;
+            $json['data'] =  $get;
+        }
+         else{
+            $json['failed'] = true;
+         }
+        return response($json);
+    }
+    public function renewalaccepted(Request $request)
+    {
+        $get = RenewDetails::where('id','=',$request->id)->first();
+        if($get){
+            $get->remark = $request->remarks;
+            $get->remark_status = 0;
+            $get->remark_person = $request->remark_person;
+            $get->save();
+            $json['success'] = true;
+            $json['data'] =  $get;
+        }
+         else{
+            $json['failed'] = true;
+         }
+        return response($json);
+    }
     public function rejected()
     {
-        $get = Graduates::where('photo','=',NULL);
-        $get = $get->Where('signature','=',NULL);
-        $get = $get->Where('deg_provitional_cerificate','=',NULL);
-        $get = $get->Where('aadhar_proof','=',NULL);
-        $get = $get->Where('signature','=',NULL)->get();
+        $get = Graduates::where('remark_status','=',1)->get();
+        $json['sucess'] = true;
+        $json['data'] =  $get;
+        return response($json);
+    }
+    
+    public function renewselected()
+    {
+        $get = RenewDetails::where('remark_status','=',0)->get();
+        $json['sucess'] = true;
+        $json['data'] =  $get;
+        return response($json);
+    }
+
+    public function renewrejected()
+    {
+        $get = RenewDetails::where('remark_status','=',1)->get();
         $json['sucess'] = true;
         $json['data'] =  $get;
         return response($json);
@@ -177,6 +252,7 @@ class RegisterController extends Controller
         $store->deg_provitional_cerificate = $request->input('deg_provitional_cerificate');
         $store->signature = $request->input('signature');
         $store->photo = $request->input('photo');
+        $store->date_of_submission =  $request->date_of_submission;
         $rand = rand(1,10000);
         $store->application_no = 'OGR'.$rand;
         $store->is_submit = 1;
@@ -230,6 +306,15 @@ class RegisterController extends Controller
         return response($json);
     }
 
+
+    public function editrenew($id)
+    {
+        $json = [];
+        $edit = RenewDetails::where('user_id',$id)->first();
+        $json['data'] = $edit;
+        $json['success'] = true;
+        return response($json);
+    }
     /**
      * Update the specified resource in storage.
      *
@@ -272,6 +357,38 @@ class RegisterController extends Controller
         $store->mobile_no = $request->mobile_no;
         $store->email = $request->email;
         $store->password = $request->password;
+        $store->user_type = $request->user_type;
+        $store->role = 'graduant';
+        $store->save();
+        $json['data'] = $store;
+        $json['success'] = true;
+        }
+        else{
+            $json['failed'] = true;
+        }
+        return response($json);
+    }
+    public function storerenewaluser(Request $request)
+    {
+        $json = [];
+        $validator = Validator::make($request->all(), [
+            'name' => 'required',
+            'mobile_no' => 'required|unique:renewusers,mobile_no,',
+            'email' => 'required|unique:renewusers,email,',
+            'password' => 'required',
+        ]);
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            return response()->json(['errors'=>$errors]);
+        }
+        $find = RenewRegOTP::where('email',$request->email)->where('otp',$request->otp)->first();
+        if($find){
+        $store = new Renewal();
+        $store->name = $request->name;
+        $store->mobile_no = $request->mobile_no;
+        $store->email = $request->email;
+        $store->password = $request->password;
+        $store->user_type = $request->user_type;
         $store->role = 'graduant';
         $store->save();
         $json['data'] = $store;
@@ -291,6 +408,26 @@ class RegisterController extends Controller
         ]);
         $credentials = $request->only('email', 'password');
           $id = User::where('email',$request->post('email'))->where('password',$request->post('password'))->first();
+          $remember = $request->has('remember_token') ? true : false;
+          if ($id) {
+              $json['data'] = $id;
+              $json['success'] = true;
+            return response($json);
+           }
+           else{
+            $json['falied'] = true;
+            return response($json);
+           }
+        }
+        public function renewallogin(Request $request)
+    {
+        $json= [];
+        $request->validate([
+            'email' => 'required|string|email',
+            'password' => 'required|string',
+        ]);
+        $credentials = $request->only('email', 'password');
+          $id = Renewal::where('email',$request->post('email'))->where('password',$request->post('password'))->first();
           $remember = $request->has('remember_token') ? true : false;
           if ($id) {
               $json['data'] = $id;
@@ -365,6 +502,7 @@ class RegisterController extends Controller
         $store->residential_add =  $res_address;
         $store->challan_no = $request->input('challan_no');
         $store->amount = $request->input('amount');
+        $store->same_add = $request->input('same_add');
         $store->bank_name = $request->input('bank_name');
         $store->date = $request->input('date');
         $store->dd_check = $request->input('dd_check');
@@ -378,6 +516,8 @@ class RegisterController extends Controller
         $store->photo = $request->input('photo');
         $store->application_no = $store->application_no;
         $store->user_id = $request->user_id;
+        $store->date_of_submission =  $request->date_of_submission;
+        $store->is_submit =  0;
         $store->save();
         $json['sucess'] = true;
         $json['data'] =  $store;
@@ -536,4 +676,203 @@ class RegisterController extends Controller
         $json['data'] = $reg->status;
         return response($json);
     }
+    public function renewregotp(Request $request){
+        $json = [];
+        $length = 6;
+        $result = '';
+        $chars = 'bcdfghjklmnprstvwxzaeiou0123456789';
+        for ($p = 0; $p < $length; $p++)
+        {
+            $result .= ($p%2) ? $chars[mt_rand(19, 23)] : $chars[mt_rand(0, 18)];
+        }
+        $otp = strtoupper($result);
+        $reg = RenewRegOTP::where('email',$request->email)->first();
+        if(!$reg){
+            $reg = new RenewRegOTP();
+        }
+        $reg->email = $request->email;
+        $reg->otp = $otp;
+        $reg->status = 1;
+        $reg->save();
+        $details = [
+            'title' => 'Mail from Bharathiar University For Graduate registration',
+            'body' => 'Your OTP is ' .$otp. '',
+        ];
+       
+        \Mail::to($request->email)->send(new \App\Mail\MyTestMail($details));
+        $json['success'] = true;
+        $json['data'] = $reg->status;
+        return response($json);
+    }
+    public function renewalsave(Request $request)
+    {
+        $json = [];
+        $string1 = '';
+        $string2 = '';
+        $string3 = '';
+        $string4 = '';
+        $string5 = '';
+        $get = '';
+        foreach($request->get('present_address') as $a)
+         {    
+            foreach($a as $b=>$c)
+            {
+                $string1 .= $c.',';
+            }
+        }
+        $present_address = substr($string1,0,-1);
+        foreach($request->get('residential_add') as $a)
+         {    
+            foreach($a as $b=>$c)
+            {
+                $string2 .= $c.',';
+            }
+        }
+        $res_address = substr($string2,0,-1);
+      $store = RenewDetails::where('user_id',$request->user_id)->first();
+        if(!$store){
+            $store = new RenewDetails();
+            $rand = rand(1,10000);
+            $store->application_no = 'OGR'.$rand;
+        }
+        $store->name = strtoupper($request->input('name'));
+        $store->aadhar_number = $request->input('aadhar_number');
+        $store->father_or_husband_name = strtoupper($request->input('father_or_husband_name'));
+        $store->present_address =  $present_address;
+        $store->declaration = $request->input('declaration');
+        $store->mobile_no = $request->input('mobile_no');
+        $store->mail_id = $request->input('mail_id');
+        $store->gender = $request->input('gender');
+        $store->occupation = $request->input('occupation');
+        $store->residential_add =  $res_address;
+        $store->challan_no = $request->input('challan_no');
+        $store->amount = $request->input('amount');
+        $store->same_add = $request->input('same_add');
+        $store->bank_name = $request->input('bank_name');
+        $store->date = $request->input('date');
+        $store->dd_check = $request->input('dd_check');
+        $store->certificate_decl = $request->input('certificate_decl');
+        $store->district = $request->input('districts');
+        $store->dob =$request->input('dob');
+        $store->address_proof = $request->input('address_proof');
+        $store->aadhar_proof = $request->input('aadhar_proof');
+        $store->signature = $request->input('signature');
+        $store->photo = $request->input('photo');
+        $store->application_no = $store->application_no;
+        $store->user_id = $request->user_id;
+        $store->date_of_submission =  $request->date_of_submission;
+        $store->is_submit =  0;
+        $store->save();
+        $json['sucess'] = true;
+        $json['data'] =  $store;
+        return response($json);
+    }
+    public function renewalstore(Request $request)
+    {
+        $json = [];
+        $string1 = '';
+        $string2 = '';
+        $string3 = '';
+        $string4 = '';
+        $string5 = '';
+        $get = '';
+        if(!$request->id){
+        $validator = Validator::make($request->all(), [
+            'aadhar_number' => 'required|unique:registration_details,aadhar_number,',
+            'mobile_no' => 'required|unique:registration_details,mobile_no,',
+            'mail_id' => 'required|unique:registration_details,mail_id,',
+            
+        ]);
+
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            return response()->json(['errors'=>$errors]);
+        }
+      }
+      if($request->id){
+        $validator = Validator::make($request->all(), [
+            'aadhar_number' => 'required',
+            'mobile_no' => 'required',
+            'mail_id' => 'required',
+            'father_or_husband_name' => 'required',
+            'present_address' => 'required',
+            'declaration' => 'required',
+            'gender' => 'required',
+            'occupation' => 'required',
+            'dob' => 'required',
+            'address_proof' => 'required',
+            'aadhar_proof' => 'required',
+            'signature' => 'required',
+            'photo' => 'required',
+            
+        ]);
+
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            return response()->json(['errors'=>$errors]);
+        }
+      }
+        foreach($request->get('present_address') as $a)
+         {    
+            foreach($a as $b=>$c)
+            {
+                $string1 .= $c.',';
+            }
+        }
+        $present_address = substr($string1,0,-1);
+        foreach($request->get('residential_add') as $a)
+         {    
+            foreach($a as $b=>$c)
+            {
+                $string2 .= $c.',';
+            }
+        }
+        $res_address = substr($string2,0,-1);
+        if(!$request->id){
+            $store = new RenewDetails();
+        }
+        else{
+            $store = RenewDetails::find($request->id);
+        }
+        $store->name = strtoupper($request->input('name'));
+        $store->aadhar_number = $request->input('aadhar_number');
+        $store->father_or_husband_name = strtoupper($request->input('father_or_husband_name'));
+        $store->present_address =  $present_address;
+        $store->declaration = $request->input('declaration');
+        $store->mobile_no = $request->input('mobile_no');
+        $store->mail_id = $request->input('mail_id');
+        $store->gender = $request->input('gender');
+        $store->occupation = $request->input('occupation');
+        $store->residential_add =  $res_address;
+        $store->certificate_decl = $request->input('certificate_decl');
+        $store->challan_no = $request->input('challan_no');
+        $store->amount = $request->input('amount');
+        $store->bank_name = $request->input('bank_name');
+        $store->date = $request->input('date');
+        $store->dd_check = $request->input('dd_check');
+        $store->district = $request->input('districts');
+        $store->dob = $request->input('dob');
+        $store->address_proof = $request->input('address_proof');
+        $store->aadhar_proof = $request->input('aadhar_proof');
+        $store->signature = $request->input('signature');
+        $store->photo = $request->input('photo');
+        $store->date_of_submission =  $request->date_of_submission;
+        $rand = rand(1,10000);
+        $store->application_no = 'OGR'.$rand;
+        $store->is_submit = 1;
+        // return $store;
+        $store->save();
+        // $get = $store->id;
+        // if($get){
+        //     $show = Graduates::find($get->id);
+        //     $pdf = PDF::loadView('pdf', compact('show'));
+        //     $pdf->save(storage_path('app/public/pdffiles/registered').'_'.$id.'.pdf');
+        //     $show->pdf = $api_url.'storage/pdffiles/registered'.'_'.$id.'.pdf';
+        //     $show->save();
+        // }
+        $json['sucess'] = true;
+        $json['data'] =  $store;
+        return response($json);
+    }
+
 }

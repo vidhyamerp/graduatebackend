@@ -31,18 +31,18 @@
     <?php $logo = env('LOGO_LINK').'logo_new.png'?>
           <img src="{{$logo}}" style="padding-left:15%">   
     <p style="font-size:10px;padding-left:95px;"><b>State university | Re-accredited with "A" Grade By NACC  | Ranked 13th among Indian Universities by MHRD-NIRF</b></p>
-    <h2 style="padding-left: 32%;padding-top:10px">Online Graduate Registration</h2>
+    <h2 style="padding-left: 32%;padding-top:10px">Online Graduate Renewal</h2>
 </div>
   <table class="table table-bordered" >
     <tbody>
     <tr>
-        <td colspan="2">Application No</td>
+        <td>Application No</td>
         <td>
          {{$show->application_no}}
         </td>
       </tr>
       <tr>
-        <td colspan="2">Name in full(as entered in the
+        <td>Name in full(as entered in the
             degree certificate) Change of name, if any,recognized by the university should alos be entered with the number
             and date of the communication permitting the changes.</td>
         <td>
@@ -54,50 +54,37 @@
         </td>
       </tr>
       <tr>
-      <td colspan="2">Father's/Husband's Name</td>
+      <td>Father's/Husband's Name</td>
         <td>
           {{$show->father_or_husband_name	}}
         </td>
       </tr>
       <tr>
-      <td colspan="2">Aadhar Card Number</td>
+      <td>Aadhar Card Number</td>
         <td>
           {{$show->aadhar_number}}
         </td>
       </tr>
-      <tr>
-      <td colspan="3">Educational Qualification</td>
-      </tr>
-      <tr colspan="2">
-        <td>Name of the Degree</td>
-        <td>Name of the University</td>
-        <td>Year of Passing</td>
-     </tr>
-     <tr colspan="2">
-        <td> {{$show->degree_name}}</td>
-        <td> {{$show->university}}</td>
-        <td> {{$show->year_of_passing}}</td>
-     </tr>
      <tr>
-      <td colspan="2">Occupation</td>
+      <td>Occupation</td>
         <td>
           {{$show->occupation}}
         </td>
       </tr>
       <tr>
-      <td colspan="2">Mobile Number</td>
+      <td>Mobile Number</td>
         <td>
           {{$show->mobile_no}}
         </td>
       </tr>
       <tr>
-      <td colspan="2">Present Address</td>
+      <td>Present Address</td>
         <td>
           {{$show->present_address}}
         </td>
       </tr>
       <tr>
-      <td colspan="2">Whether the Bank Draft for rs.25/- towards the registration fee is attached</td>
+      <td>Whether the Bank Draft for Rs.10/- towards the registration fee is attached</td>
       @if($show->dd_check == 1)
          
            <td>Yes</td>
@@ -108,7 +95,7 @@
          @endif
       </tr>
       <tr>
-      <td colspan="2">Whether,the original cerificate
+      <td>Whether,the original cerificate
               or copy of the degree Cerificate or provisional certificate duly attested by gazetted
               officer,Syndicate/Senate Member of Barathiyar university in proof of qualification is attested.</td>
         @if($show->deg_provitional_cerificate)
@@ -118,13 +105,13 @@
         @endif
       </tr>
       <tr>
-      <td colspan="2">Date of Submission</td>
+      <td>Date of Submission</td>
         <td>
           {{$show->date_of_submission}}
         </td>
       </tr>
       <tr>
-      <td colspan="2">Signature</td>
+      <td>Signature</td>
         <td>
         @if($show->signature)
         <?php $sign = env('STORAGE_PATH').'images/' .$show->signature; ?>

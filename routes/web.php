@@ -26,15 +26,18 @@ Route::get('/', function () {
 
 //authenicate
 Route::post('/api/login', 'RegisterController@login');
+
 Route::post('/api/store', 'RegisterController@store');
 Route::post('/api/save', 'RegisterController@save');
 Route::get('/api/edit/{id}', 'RegisterController@edit');
 Route::get('/api/get/{id}', 'RegisterController@show');
 
 Route::post('/api/storeuser', 'RegisterController@storeuser');
+
 Route::get('/api/selected', 'RegisterController@selected');
 Route::get('/api/rejected', 'RegisterController@rejected');
 Route::get('/api/downloadPDF/{id}','CommonController@downloadPDF');
+Route::get('/api/downloadrenewalPDF/{id}','CommonController@downloadrenewalPDF');
 Route::get('/api/downloadIndividual/{id}','CommonController@downloadIndividual');
 Route::post('/api/savefile',  'CommonController@store');
 
@@ -48,8 +51,8 @@ Route::get('/api/piechart1','CommonController@piechart1');
 
 Route::get('api/bulkdownload','CommonController@bulkdownload');
 
-Route::get('api/select','CommonController@select');
-Route::get('api/reject','CommonController@reject');
+Route::get('api/select','RegisterController@selected');
+Route::get('api/reject','RegisterController@rejected');
 //aadhar verification 
 
 Route::post('/api/aadharupload', 'RegisterController@aadharupload');
@@ -66,3 +69,24 @@ Route::get('/api/payment', 'RegisterController@payment')->name('payment');
 Route::post('/api/verifiy',  'RegisterController@sendotp');
 
 Route::post('/api/reg_otp',  'RegisterController@sendregotp');
+
+Route::get('logs', '\Rap2hpoutre\LaravelLogViewer\LogViewerController@index');
+
+//Renewal
+
+Route::post('/api/renewallogin', 'RegisterController@renewallogin');
+Route::post('/api/storerenewaluser', 'RegisterController@storerenewaluser');
+Route::post('/api/renew_reg_otp',  'RegisterController@renewregotp');
+Route::get('/api/editrenew/{id}', 'RegisterController@editrenew');
+Route::post('/api/renewalstore', 'RegisterController@renewalstore');
+Route::post('/api/renewalsave', 'RegisterController@renewalsave');
+
+Route::get('/api/renewpiechart','CommonController@renewpiechart');
+Route::get('/api/renewpiechart1','CommonController@renewpiechart1');
+Route::get('/api/renewselected', 'RegisterController@renewselected');
+Route::get('/api/renewrejected', 'RegisterController@renewrejected');
+
+Route::post('/api/remarks', 'RegisterController@remarks');
+Route::post('/api/remarkrenewal', 'RegisterController@remarkrenewal');
+Route::post('/api/accepted', 'RegisterController@accepted');
+Route::post('/api/renewalaccepted', 'RegisterController@renewalaccepted');

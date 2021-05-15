@@ -13,7 +13,7 @@
 
 <body>
 <div class="text-center p-4">
-    <button class="btn btn-primary" id="btnSubmit" >Make a Payment</button>
+   <span class="mr-4"> Click here... </span> <button class="btn btn-primary" id="btnSubmit" >Make a Payment</button>
 </div>
     <script type="text/javascript" src="https://www.paynimo.com/paynimocheckout/server/lib/checkout.js"></script>
 
@@ -71,6 +71,9 @@
                 if(configJson.features.enableNewWindowFlow){
                     pnCheckoutShared.openNewWindow();
                 }
+              if(configJson){
+                console.log(configJson.consumerData.responseHandler)
+              }
             });
         });
     </script>

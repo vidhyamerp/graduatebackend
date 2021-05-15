@@ -8,6 +8,7 @@ use Barryvdh\DomPDF\Facade as PDF;
 use Illuminate\Support\Facades\Storage;
 use File;
 use Validator;
+use App\Model\RenewDetails;
 use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\Response;
 use ZipArchive;
@@ -30,6 +31,14 @@ class CommonController extends Controller
         //    return view('pdf',compact('show'));
             return $pdf->stream($show->name.'_'.$show->application_no.'.pdf');      
     }
+    public function downloadrenewalPDF($id) { 
+        $json = [];
+        $api_url = env('APP_URL');
+        $show = RenewDetails::where('user_id',$id)->first();
+        $pdf = PDF::loadView('renewpdf',compact('show'));
+    //    return view('pdf',compact('show'));
+        return $pdf->stream($show->name.'_'.$show->application_no.'.pdf');      
+}
     public function downloadIndividual($id) { 
             $json = [];
             $api_url = env('APP_URL');
@@ -94,16 +103,30 @@ class CommonController extends Controller
     public function piechart1(){
         $json = [];
         $all = Graduates::all()->count();
-        $selected = Graduates::whereNotNull('photo');
-        $selected = $selected->orWhereNotNull('signature');
-        $selected = $selected->orWhereNotNull('deg_provitional_cerificate');
-        $selected = $selected->orWhereNotNull('aadhar_proof');
-        $selected = $selected->orWhereNotNull('signature')->count();
-        $rejected = Graduates::whereNull('photo');
-        $rejected = $rejected->whereNull('signature');
-        $rejected = $rejected->whereNull('deg_provitional_cerificate');
-        $rejected = $rejected->whereNull('aadhar_proof');
-        $rejected = $rejected->whereNull('signature')->count();
+        $selected = Graduates::where('remark_status','=',0)->count();
+        $rejected = Graduates::where('remark_status','=',1)->count();
+        $json['total'] =  $all;
+        $json['selected'] =  $selected;
+        $json['rejected'] =  $rejected;
+        return response($json);
+    }
+    public function renewpiechart(){
+        $json = [];
+        $coimbatore = RenewDetails::where('district','=','coimbatore')->count('district');
+        $erode = RenewDetails::where('district','=','erode')->count('district');
+        $nilgiris = RenewDetails::where('district','=','nilgiris')->count('district');
+        $tirupur = RenewDetails::where('district','=','tirpur')->count('district');
+        $json['coimbatore'] =  $coimbatore;
+        $json['erode'] =  $erode;
+        $json['nilgiris'] =  $nilgiris;
+        $json['tirpur'] =  $tirupur;
+        return response($json);
+    }
+    public function renewpiechart1(){
+        $json = [];
+        $all = RenewDetails::all()->count();
+        $selected = RenewDetails::where('remark_status','=',0)->count();
+        $rejected = RenewDetails::where('remark_status','=',1)->count();
         $json['total'] =  $all;
         $json['selected'] =  $selected;
         $json['rejected'] =  $rejected;
