@@ -20,6 +20,7 @@ use ZipArchive;
 use App\Model\AadharValidate;
 use Intervention\Image\Facades\Image;
 use App\Http\CustomHelper;
+use Carbon\Carbon;
 class RegisterController extends Controller
 {
     /**
@@ -37,11 +38,16 @@ class RegisterController extends Controller
 
     public function remarks(Request $request)
     {
+        $remarkdate = '';
         $get = Graduates::where('id','=',$request->id)->first();
         if($get){
             $get->remark = $request->remarks;
             $get->remark_status = 1;
             $get->remark_person = $request->remark_person;
+            $date = Carbon::now();
+            $date->toDateTimeString();
+            $remarkdate =  date("d-m-Y", strtotime($date->toDateString()));
+            $get->remark_date = $remarkdate;
             $get->save();
             $json['success'] = true;
             $json['data'] =  $get;
@@ -53,11 +59,16 @@ class RegisterController extends Controller
     }
     public function remarkrenewal(Request $request)
     {
+        $remarkdate = '';
         $get = RenewDetails::where('id','=',$request->id)->first();
         if($get){
             $get->remark = $request->remarks;
             $get->remark_status = 1;
             $get->remark_person = $request->remark_person;
+            $date = Carbon::now();
+            $date->toDateTimeString();
+            $remarkdate =  date("d-m-Y", strtotime($date->toDateString()));
+            $get->remark_date = $remarkdate;
             $get->save();
             $json['success'] = true;
             $json['data'] =  $get;
@@ -69,11 +80,16 @@ class RegisterController extends Controller
     }
     public function accepted(Request $request)
     {
+        $remarkdate = '';
         $get = Graduates::where('id','=',$request->id)->first();
         if($get){
             $get->remark = $request->remarks;
             $get->remark_status = 0;
             $get->remark_person = $request->remark_person;
+            $date = Carbon::now();
+            $date->toDateTimeString();
+            $remarkdate =  date("d-m-Y", strtotime($date->toDateString()));
+            $get->remark_date = $remarkdate;
             $get->save();
             $json['success'] = true;
             $json['data'] =  $get;
@@ -85,11 +101,16 @@ class RegisterController extends Controller
     }
     public function renewalaccepted(Request $request)
     {
+        $remarkdate = '';
         $get = RenewDetails::where('id','=',$request->id)->first();
         if($get){
             $get->remark = $request->remarks;
             $get->remark_status = 0;
             $get->remark_person = $request->remark_person;
+            $date = Carbon::now();
+            $date->toDateTimeString();
+            $remarkdate =  date("d-m-Y", strtotime($date->toDateString()));
+            $get->remark_date = $remarkdate;
             $get->save();
             $json['success'] = true;
             $json['data'] =  $get;
