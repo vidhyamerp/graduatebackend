@@ -14,8 +14,11 @@ use App\Model\RegOTP;
 use App\Model\RenewRegOTP;
 use App\Model\Renewal;
 use App\Model\RenewDetails;
+use App\Model\PaymentDetails;
+use App\Model\RenewalPaymentDetails;
 use Auth;
 use Hash;
+use Redirect;
 use ZipArchive;
 use App\Model\AadharValidate;
 use Intervention\Image\Facades\Image;
@@ -184,6 +187,7 @@ class RegisterController extends Controller
         }
       }
       if($request->id){
+          $id = $request->id;
         $validator = Validator::make($request->all(), [
             'aadhar_number' => 'required',
             'mobile_no' => 'required',
@@ -195,13 +199,14 @@ class RegisterController extends Controller
             'occupation' => 'required',
             'name_of_degree' => 'required',
             'name_of_university' => 'required',
-            'year_of_passing' => 'required',
+            // 'year_of_passing' => 'required|numeric',
             'dob' => 'required',
             'address_proof' => 'required',
             'aadhar_proof' => 'required',
             'signature' => 'required',
             'deg_provitional_cerificate' => 'required',
             'photo' => 'required',
+            // 'dd_proof_or_payment_receipt' => 'required',
             
         ]);
 
@@ -226,21 +231,6 @@ class RegisterController extends Controller
             }
         }
         $res_address = substr($string2,0,-1);
-        foreach($request->get('name_of_degree') as $a)
-         {    
-                $string3 .= $a.',';
-        }
-    //     $degree = $string3;
-    //     foreach($request->get('name_of_university') as $a)
-    //      {    
-    //             $string4 .= $a.',';
-    //     }
-    //     $university = $string4;
-    //     foreach($request->get('year_of_passing') as $a)
-    //     {    
-    //            $string5 .= $a.',';
-    //    }
-    //    $year_pass = $string5;
         if(!$request->id){
             $store = new Graduates();
         }
@@ -256,10 +246,13 @@ class RegisterController extends Controller
         $store->mail_id = $request->input('mail_id');
         $store->gender = $request->input('gender');
         $store->occupation = $request->input('occupation');
-        $store->degree_name =   $request->get('name_of_degree');
-        $store->university = $request->get('name_of_university');
-        $store->year_of_passing = $request->get('year_of_passing');
+        if($request->get('name_of_degree') != [""] && $request->get('name_of_university')!= [""] && $request->get('year_of_passing')!= [""]){
+            $store->degree_name =   json_encode($request->get('name_of_degree'),true);
+            $store->university = json_encode($request->get('name_of_university'),true);
+            $store->year_of_passing = json_encode($request->get('year_of_passing'),true);
+        }
         $store->residential_add =  $res_address;
+        $store->same_add = $request->input('same_add');
         $store->certificate_decl = $request->input('certificate_decl');
         $store->challan_no = $request->input('challan_no');
         $store->amount = $request->input('amount');
@@ -273,12 +266,60 @@ class RegisterController extends Controller
         $store->deg_provitional_cerificate = $request->input('deg_provitional_cerificate');
         $store->signature = $request->input('signature');
         $store->photo = $request->input('photo');
+        // $store->dd_proof_or_payment_receipt = $request->input('dd_proof_or_payment_receipt');
         $store->date_of_submission =  $request->date_of_submission;
+        $store->communication_number =  $request->communication_number;
+        $store->name_change =  $request->name_change;
+        $store->name_change_date =  $request->name_change_date;
+        $store->name_change_docs =  $request->name_change_docs;
+        $store->user_id =  $request->user_id;
         $rand = rand(1,10000);
         $store->application_no = 'OGR'.$rand;
         $store->is_submit = 1;
-        // return $store;
+        $mm = date('m');
+        $month = '';
+        if($mm == '07' ){
+         $month = 'JUL';
+        }
+        $year = date('Y');
+        $district_code = '';
+        // $users = User::where('id','=',$request->user_id)->first();
+        if($request->districts === 'Coimbatore'){
+         $district_code = 'C-';
+         $getting =  User::orderBy('count', 'DESC')->where('district','=','Coimbatore')->first();
+         $reg_no = sprintf('%05d',$getting->count);
+         $store->registration_number = $district_code.$year.$month.$reg_no;
+        }
+        else if($request->districts === 'Erode'){
+            $district_code = 'E-';
+            $getting =  User::orderBy('count', 'DESC')->where('district','=','Erode')->first();
+            
+            $reg_no = sprintf('%05d',$getting->count);
+            $store->registration_number = $district_code.$year.$month.$reg_no;
+           }
+        else if($request->districts === 'Nilgiris'){
+            $district_code = 'N-';
+            $getting =  User::orderBy('count', 'DESC')->where('district','=','Nilgiris')->first();
+            
+            $reg_no = sprintf('%05d',$getting->count);
+            $store->registration_number = $district_code.$year.$month.$reg_no;
+        }
+        else if($request->districts === 'Tirupur'){
+            $district_code = 'T-';
+            $getting =  User::orderBy('count', 'DESC')->where('district','=','Tirupur')->first();
+            
+            $reg_no = sprintf('%05d',$getting->count);
+            $store->registration_number = $district_code.$year.$month.$reg_no;
+           }
+        $store->session = $request->session;
+        $receipt = PaymentDetails::where('user_id', $request->user_id)->first();
+        if($receipt){
         $store->save();
+        $json['sucess'] = true;
+        $json['data'] =  $store;
+        }else{
+            $json['payment_pending'] = 'Please pay registration fee, before submitting!';
+        }
         // $get = $store->id;
         // if($get){
         //     $show = Graduates::find($get->id);
@@ -287,8 +328,6 @@ class RegisterController extends Controller
         //     $show->pdf = $api_url.'storage/pdffiles/registered'.'_'.$id.'.pdf';
         //     $show->save();
         // }
-        $json['sucess'] = true;
-        $json['data'] =  $store;
         return response($json);
     }
 
@@ -379,6 +418,39 @@ class RegisterController extends Controller
         $store->email = $request->email;
         $store->password = $request->password;
         $store->user_type = $request->user_type;
+        $store->district = $request->district;
+        if($request->district === 'Coimbatore'){
+            $getting =  User::where('district','=','Coimbatore')->latest()->first();
+            if($getting){
+                $store->count .= $getting->count+1;
+           }else{
+            $store->count = 1;
+           }
+        }
+        elseif($request->district === 'Erode'){
+            $getting =  User::where('district','=','Erode')->latest()->first();
+            if($getting){
+                $store->count .= $getting->count+1;
+           }else{
+            $store->count = 1;
+           }
+        }
+        elseif($request->district === 'Tirupur'){
+            $getting =  User::where('district','=','Tirupur')->latest()->first();
+            if($getting){
+                $store->count .= $getting->count+1;
+           }else{
+            $store->count = 1;
+           }
+        }
+        elseif($request->district === 'Nilgiris'){
+            $getting =  User::where('district','=','Nilgiris')->latest()->first();
+            if($getting){
+                $store->count .= $getting->count+1;
+           }else{
+            $store->count = 1;
+           }
+        }
         $store->role = 'graduant';
         $store->save();
         $json['data'] = $store;
@@ -409,6 +481,7 @@ class RegisterController extends Controller
         $store->mobile_no = $request->mobile_no;
         $store->email = $request->email;
         $store->password = $request->password;
+        $store->district = $request->district;
         $store->user_type = $request->user_type;
         $store->role = 'graduant';
         $store->save();
@@ -469,6 +542,15 @@ class RegisterController extends Controller
         $string4 = '';
         $string5 = '';
         $get = '';
+        if($request->aadhar_number){
+        $validator = Validator::make($request->all(), [
+            'aadhar_number' => 'required|unique:registration_details,aadhar_number,' .$request->id,
+        ]);
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            return response()->json(['errors'=>$errors]);
+        }
+        }   
         foreach($request->get('present_address') as $a)
          {    
             foreach($a as $b=>$c)
@@ -516,9 +598,9 @@ class RegisterController extends Controller
         $store->gender = $request->input('gender');
         $store->occupation = $request->input('occupation');
         if($request->get('name_of_degree') != [""] && $request->get('name_of_university')!= [""] && $request->get('year_of_passing')!= [""]){
-        $store->degree_name =   $request->get('name_of_degree');
-        $store->university = $request->get('name_of_university');
-        $store->year_of_passing = $request->get('year_of_passing');
+            $store->degree_name =   json_encode($request->get('name_of_degree'),true);
+            $store->university = json_encode($request->get('name_of_university'),true);
+            $store->year_of_passing = json_encode($request->get('year_of_passing'),true);
         }
         $store->residential_add =  $res_address;
         $store->challan_no = $request->input('challan_no');
@@ -535,10 +617,16 @@ class RegisterController extends Controller
         $store->deg_provitional_cerificate = $request->input('deg_provitional_cerificate');
         $store->signature = $request->input('signature');
         $store->photo = $request->input('photo');
+        // $store->dd_proof_or_payment_receipt = $request->input('dd_proof_or_payment_receipt');
         $store->application_no = $store->application_no;
         $store->user_id = $request->user_id;
         $store->date_of_submission =  $request->date_of_submission;
+        $store->communication_number =  $request->communication_number;
+        $store->name_change =  $request->name_change;
+        $store->name_change_date =  $request->name_change_date;
+        $store->name_change_docs =  $request->name_change_docs;
         $store->is_submit =  0;
+        $store->session = $request->session;
         $store->save();
         $json['sucess'] = true;
         $json['data'] =  $store;
@@ -631,14 +719,69 @@ class RegisterController extends Controller
         }
         return response($json);
     }
-    public function payment(){
-       return view('payment.payment');
+    public function payment15(){
+       return view('payment.15rupees');
     }
+    public function payment25(){
+        return view('payment.payment');
+     }
+    public function payments(Request $request){
+        $data =  $request->msg;
+        $user_id = $request->get('user_id');
+        $res =  explode("|", $data);
+        $getdetails = User::where('id',$user_id)->first();
+       
+        $details = PaymentDetails::where('user_id',$user_id)->first();
+        if(!$details){
+            $details = new PaymentDetails();
+        }
+        $details->user_id =  $user_id;
+        $details->name = $getdetails->name;
+        $details->email =  $getdetails->email;
+        $details->transaction_date = date('h:i:s a m/d/Y', strtotime($res[8]));
+        $details->amount =  $res[6];
+        $details->status =  $res[1];
+        $details->transaction_id =  $res[3];
+        $details->save();
+        if($res[1] != 'success'){
+            return redirect('api/payment/registration');
+        }
+        return view('payment.payments')->with(['details'=>$details]);
+        
+     }
+     public function renewalpayments(Request $request){
+        $data =  $request->msg;
+        $user_id = $request->get('user_id');
+        $res =  explode("|", $data);
+       
+        $getdetails = Renewal::where('id',$user_id)->first();
+        $details = RenewalPaymentDetails::where('user_id',$user_id)->first();
+        if(!$details){
+            $details = new RenewalPaymentDetails();
+        }
+        $details->user_id =  $user_id;
+        $details->name = $getdetails->name;
+        $details->email =  $getdetails->email;
+        $details->transaction_date = date('h:i:s a m/d/Y', strtotime($res[8]));
+        $details->amount =  $res[6];
+        $details->status =  $res[1];
+        $details->transaction_id =  $res[3];
+        $details->save();
+        if($res[1] != 'success'){
+            return redirect('api/payment/renewal');
+        }
+        return view('payment.renewalpayments')->with(['details'=>$details]);
+      
+     }
     public function sendotp(Request $request){
         $json = [];
         $length = 6;
         $chars = 'bcdfghjklmnprstvwxzaeiou0123456789';
         $result = '';
+        if(empty($request->email)){
+            $json['error'] =   'Please Enter a Valid Email!';
+            return response($json);
+        }
         $find = User::where('email',$request->email)->first();
         if($find){
         for ($p = 0; $p < $length; $p++)
@@ -656,7 +799,7 @@ class RegisterController extends Controller
         $otpdata->status = 1;
         $otpdata->save();
         $details = [
-            'title' => 'Mail from Bharathiar University For Graduate registration',
+            'title' => 'Mail from Bharathiar University For Graduate Registration',
             'body' => 'Your OTP is ' .$otp. '',
         ];
        
@@ -671,6 +814,13 @@ class RegisterController extends Controller
     }
     public function sendregotp(Request $request){
         $json = [];
+        $validator = Validator::make($request->all(), [
+            'email' => 'required',
+        ]);
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            return response()->json(['errors'=>$errors]);
+        }
         $length = 6;
         $result = '';
         $chars = 'bcdfghjklmnprstvwxzaeiou0123456789';
@@ -688,7 +838,7 @@ class RegisterController extends Controller
         $reg->status = 1;
         $reg->save();
         $details = [
-            'title' => 'Mail from Bharathiar University For Graduate registration',
+            'title' => 'Mail from Bharathiar University For Graduate Registration',
             'body' => 'Your OTP is ' .$otp. '',
         ];
        
@@ -699,6 +849,13 @@ class RegisterController extends Controller
     }
     public function renewregotp(Request $request){
         $json = [];
+        $validator = Validator::make($request->all(), [
+            'email' => 'required',
+        ]);
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            return response()->json(['errors'=>$errors]);
+        }
         $length = 6;
         $result = '';
         $chars = 'bcdfghjklmnprstvwxzaeiou0123456789';
@@ -716,7 +873,7 @@ class RegisterController extends Controller
         $reg->status = 1;
         $reg->save();
         $details = [
-            'title' => 'Mail from Bharathiar University For Graduate registration',
+            'title' => 'Mail from Bharathiar University For Graduate Renewal',
             'body' => 'Your OTP is ' .$otp. '',
         ];
        
@@ -734,6 +891,15 @@ class RegisterController extends Controller
         $string4 = '';
         $string5 = '';
         $get = '';
+        if($request->aadhar_number){
+        $validator = Validator::make($request->all(), [
+            'aadhar_number' => 'required|unique:renewal_details,aadhar_number,' .$request->id,
+        ]);
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            return response()->json(['errors'=>$errors]);
+        }
+        }
         foreach($request->get('present_address') as $a)
          {    
             foreach($a as $b=>$c)
@@ -775,14 +941,24 @@ class RegisterController extends Controller
         $store->certificate_decl = $request->input('certificate_decl');
         $store->district = $request->input('districts');
         $store->dob =$request->input('dob');
+        $store->enrol_check = $request->enrol_check;
+        $store->enrol_proof = $request->input('enrol_proof');
         $store->address_proof = $request->input('address_proof');
         $store->aadhar_proof = $request->input('aadhar_proof');
         $store->signature = $request->input('signature');
         $store->photo = $request->input('photo');
+        // $store->dd_proof_or_payment_receipt = $request->input('dd_proof_or_payment_receipt');
         $store->application_no = $store->application_no;
         $store->user_id = $request->user_id;
         $store->date_of_submission =  $request->date_of_submission;
+        $store->data_of_registration =  $request->data_of_registration;
+        $store->communication_number =  $request->communication_number;
+        $store->name_change =  $request->name_change;
+        $store->name_change_date =  $request->name_change_date;
+        $store->name_change_docs =  $request->name_change_docs;
         $store->is_submit =  0;
+        $store->registration_number = $request->registration_number;
+        $store->session = $request->session;
         $store->save();
         $json['sucess'] = true;
         $json['data'] =  $store;
@@ -799,9 +975,9 @@ class RegisterController extends Controller
         $get = '';
         if(!$request->id){
         $validator = Validator::make($request->all(), [
-            'aadhar_number' => 'required|unique:registration_details,aadhar_number,',
-            'mobile_no' => 'required|unique:registration_details,mobile_no,',
-            'mail_id' => 'required|unique:registration_details,mail_id,',
+            'aadhar_number' => 'required|unique:renewal_details,aadhar_number,',
+            'mobile_no' => 'required|unique:renewal_details,mobile_no,',
+            'mail_id' => 'required|unique:renewal_details,mail_id,',
             
         ]);
 
@@ -819,17 +995,26 @@ class RegisterController extends Controller
             'present_address' => 'required',
             'declaration' => 'required',
             'gender' => 'required',
+            // 'year_of_passing' => 'required|numeric',
             'occupation' => 'required',
             'dob' => 'required',
             'address_proof' => 'required',
             'aadhar_proof' => 'required',
+            'enrol_proof' => 'required',
             'signature' => 'required',
+            'registration_number' => 'required',
             'photo' => 'required',
+            // 'dd_proof_or_payment_receipt' => 'required',
             
         ]);
 
         if ($validator->fails()) {
             $errors = $validator->errors();
+            return response()->json(['errors'=>$errors]);
+        }
+        $fetch = RenewDetails::where('registration_number',$request->registration_number)->first();
+        if(!$fetch){
+            $errors = $validator->errors('This Register Number is not Stored in our Database!');
             return response()->json(['errors'=>$errors]);
         }
       }
@@ -868,21 +1053,40 @@ class RegisterController extends Controller
         $store->certificate_decl = $request->input('certificate_decl');
         $store->challan_no = $request->input('challan_no');
         $store->amount = $request->input('amount');
+        $store->same_add = $request->input('same_add');
         $store->bank_name = $request->input('bank_name');
         $store->date = $request->input('date');
         $store->dd_check = $request->input('dd_check');
         $store->district = $request->input('districts');
         $store->dob = $request->input('dob');
+        $store->enrol_check = $request->enrol_check;
+        $store->enrol_proof = $request->input('enrol_proof');
         $store->address_proof = $request->input('address_proof');
         $store->aadhar_proof = $request->input('aadhar_proof');
         $store->signature = $request->input('signature');
         $store->photo = $request->input('photo');
+        // $store->dd_proof_or_payment_receipt = $request->input('dd_proof_or_payment_receipt');
         $store->date_of_submission =  $request->date_of_submission;
+        $store->data_of_registration =  $request->data_of_registration;
+        $store->communication_number =  $request->communication_number;
+        $store->name_change =  $request->name_change;
+        $store->name_change_date =  $request->name_change_date;
+        $store->name_change_docs =  $request->name_change_docs;
+        $store->user_id =  $request->user_id;
         $rand = rand(1,10000);
         $store->application_no = 'OGR'.$rand;
         $store->is_submit = 1;
+        $store->registration_number = $request->registration_number;
+        $store->session = $request->session;
         // return $store;
+        $receipt = RenewalPaymentDetails::where('user_id', $request->user_id)->first();
+        if($receipt){
         $store->save();
+        $json['sucess'] = true;
+        $json['data'] =  $store;
+        }else{
+            $json['payment_pending'] = 'Please pay registration fee, before submitting!';
+        }
         // $get = $store->id;
         // if($get){
         //     $show = Graduates::find($get->id);
@@ -891,9 +1095,7 @@ class RegisterController extends Controller
         //     $show->pdf = $api_url.'storage/pdffiles/registered'.'_'.$id.'.pdf';
         //     $show->save();
         // }
-        $json['sucess'] = true;
-        $json['data'] =  $store;
+       
         return response($json);
     }
-
 }

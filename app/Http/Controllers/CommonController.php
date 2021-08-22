@@ -12,6 +12,9 @@ use App\Model\RenewDetails;
 use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\Response;
 use ZipArchive;
+use App\Model\Log;
+use App\Model\RenewalPaymentDetails;
+use App\Model\PaymentDetails;
 class CommonController extends Controller
 {
     public function fileupload(Request $request){
@@ -27,17 +30,58 @@ class CommonController extends Controller
             $json = [];
             $api_url = env('APP_URL');
             $show = Graduates::where('user_id',$id)->first();
-            $pdf = PDF::loadView('pdf',compact('show'));
+            $slip = PaymentDetails::where('user_id',$id)->first();
+            $pdf = PDF::loadView('pdf',compact('show','slip'));
         //    return view('pdf',compact('show'));
             return $pdf->stream($show->name.'_'.$show->application_no.'.pdf');      
     }
+    public function downloadreceipt($id) { 
+        $json = [];
+        $api_url = env('APP_URL');
+        $details = PaymentDetails::where('user_id',$id)->first();
+        $pdf = PDF::loadView('printreceipt',compact('details'));
+    //    return view('pdf',compact('show'));
+        return $pdf->stream('receipt.pdf');      
+}
+    public function checkpaymentregister($id){
+        $json = [];
+        $details = PaymentDetails::where('user_id',$id)->first();
+        $json['success'] = true;
+        $json['data'] = $details;
+        return response($json);
+    }
+    public function checkpaymentrenewal($id){
+        $json = [];
+        $details = RenewalPaymentDetails::where('user_id',$id)->first();
+        $json['success'] = true;
+        $json['data'] = $details;
+        return response($json);
+    }
+public function downloadrenewalreceipt($id) { 
+    $json = [];
+    $api_url = env('APP_URL');
+    $details = RenewalPaymentDetails::where('user_id',$id)->first();
+    $pdf = PDF::loadView('printrenewalreceipt',compact('details'));
+//    return view('pdf',compact('show'));
+    return $pdf->stream('receipt.pdf');      
+}
     public function downloadrenewalPDF($id) { 
+        try{
         $json = [];
         $api_url = env('APP_URL');
         $show = RenewDetails::where('user_id',$id)->first();
-        $pdf = PDF::loadView('renewpdf',compact('show'));
+        $slip = RenewalPaymentDetails::where('user_id',$id)->first();
+        $pdf = PDF::loadView('renewpdf',compact('show','slip'));
     //    return view('pdf',compact('show'));
-        return $pdf->stream($show->name.'_'.$show->application_no.'.pdf');      
+        
+        }
+       catch(Exception $e) {
+                $log = new Log();
+                $log->message = $e;
+                $log->save();
+           
+        }  
+        return $pdf->stream($show->name.'_'.$show->application_no.'.pdf');   
 }
     public function downloadIndividual($id) { 
             $json = [];

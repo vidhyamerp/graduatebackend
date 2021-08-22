@@ -8,7 +8,11 @@
       line-height: 2px;
     }
     table,
-    th,
+    th{
+      border: 1px solid black;
+      border-collapse: collapse;
+      padding:10px;
+    }
     td {
       border: 1px solid black;
       border-collapse: collapse;
@@ -17,11 +21,18 @@
     body {
   margin: 0;
   padding: 0;
-  background-color: #FAFAFA;
   font: 12pt "Tahoma";
 }
 .page-break {
     page-break-after: always;
+}
+.rowClass {
+vertical-align:middle !important;
+height:90px;
+}
+.cellClass {
+vertical-align:middle !important;
+height:90px;
 }
   </style>
 </head>
@@ -31,10 +42,16 @@
     <?php $logo = env('LOGO_LINK').'logo_new.png'?>
           <img src="{{$logo}}" style="padding-left:15%">   
     <p style="font-size:10px;padding-left:95px;"><b>State university | Re-accredited with "A" Grade By NACC  | Ranked 13th among Indian Universities by MHRD-NIRF</b></p>
-    <h2 style="padding-left: 32%;padding-top:10px">Online Graduate Registration</h2>
+    <h2 style="padding-left: 20%;padding-top:10px">Online Graduate Registration -  {{$show->district}}</h2>
 </div>
   <table class="table table-bordered" >
     <tbody>
+    <tr>
+        <td colspan="2">{{$show->session}}</td>
+        <td>
+         Reg.No : {{$show->registration_number}}
+        </td>
+      </tr>
     <tr>
         <td colspan="2">Application No</td>
         <td>
@@ -54,6 +71,30 @@
         </td>
       </tr>
       <tr>
+          <td colspan="2">Is there a change of name?</td>
+          <td>
+          @if($show->name_change === 1)
+            <span>YES</span>
+          @endif
+          @if($show->name_change === 0)
+            <span>NO</span>
+            @endif
+          </td>
+        </tr>
+        @if($show->name_change === 1)
+        <tr>
+        <td colspan="2">Communication for Change of Name</td>
+        <td>
+          <span><b>Communication No:</b> {{$show->communication_number}}</span><br/><br/>
+            <span><b>Date of Name Change:</b> {{$show->name_change_date}}</span><br/><br/>
+            <span><b>Proof of Name Change</b> 
+            <?php $name_change_docs = env('STORAGE_PATH').'images/' .$show->name_change_docs; ?>
+          <img src="{{$name_change_docs}}" height=100 width=100>   
+          </span><br/>
+        </td>
+      </tr>
+      @endif
+      <tr>
       <td colspan="2">Father's/Husband's Name</td>
         <td>
           {{$show->father_or_husband_name	}}
@@ -65,6 +106,13 @@
           {{$show->aadhar_number}}
         </td>
       </tr>
+      <tr>
+              <td colspan="2">Date of Birth</td>
+              <td>
+                <?php $date=date_create($show->dob); $dob=date_format($date,"d-m-Y");?>
+                {{$dob}}
+              </td>
+            </tr>
       <tr>
       <td colspan="3">Educational Qualification</td>
       </tr>
@@ -91,22 +139,18 @@
         </td>
       </tr>
       <tr>
-      <td colspan="2">Present Address</td>
-        <td>
-          {{$show->present_address}}
-        </td>
-      </tr>
-      <tr>
-      <td colspan="2">Whether the Bank Draft for rs.25/- towards the registration fee is attached</td>
-      @if($show->dd_check == 1)
-         
-           <td>Yes</td>
-         
-         @else
-           <td>No</td>
-         
-         @endif
-      </tr>
+              <td colspan="2">Communication Address</td>
+              <td>
+                {{$show->present_address}}
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2">Residential Address</td>
+              <td>
+                {{$show->residential_add}}
+              </td>
+            </tr>
+     
       <tr>
       <td colspan="2">Whether,the original cerificate
               or copy of the degree Cerificate or provisional certificate duly attested by gazetted
@@ -115,6 +159,18 @@
               <td>Yes</td>
         @else
             <td> No</td>
+        @endif
+      </tr>
+      <tr>
+      <td colspan="2" rowpan="2">Payment</td>
+      @if($slip)
+        <td>
+          {{$slip->status}}
+        </td>
+        @else
+        <td>
+         Not Paid
+        </td>
         @endif
       </tr>
       <tr>
@@ -153,11 +209,6 @@
   <div class="page-break"></div>
   <?php $degree = env('STORAGE_PATH').'images/'.$show->deg_provitional_cerificate; ?>
   <img src="{{$degree}}" >   
-  @endif
-  @if($show->dd_image	)
-  <div class="page-break"></div>
-  <?php $dd_image = env('STORAGE_PATH').'images/'.$show->dd_image; ?>
-  <img src="{{$dd_image}}" >   
   @endif
  </div>
 </body>

@@ -2,16 +2,15 @@
 <html>
 
 <head>
-    
+    <title>Checkout Demo</title>
     <meta name="viewport" content="width=device-width" />
-    <title>OGR Online Payment Page</title>
+    <title>Checkout Demo</title>
     <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1" />
     <script src="https://www.paynimo.com/paynimocheckout/client/lib/jquery.min.js" type="text/javascript"></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
         crossorigin="anonymous">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <link rel="javascript" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js">
-   
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/forge/0.8.2/forge.all.min.js"></script>
 </head>
@@ -28,15 +27,14 @@
     }
     return null;
 }
-    var value = readCookie('user_id');
+var value = readCookie('user_id');
     var email = readCookie('email');
     var mobile_no = readCookie('mobile_no');
     console.log(value)
     console.log(email)
     console.log(mobile_no)
-    var rand = Math.floor(Math.random()*90000000) + 10000000;
+    rand = Math.floor(Math.random()*90000) + 10000;
     console.log(rand)
-    // $mingle = 'L647563|11116666|25||c123|'+mobile_no+'|'+email+'||||||||||7012066604TKBGHA';
 </script>
 <div class="text-center p-4">
    <span class="mr-4"> Click here... </span> <button class="btn btn-primary" id="btnSubmit" >Make a Payment</button>
@@ -54,30 +52,30 @@
                     // error block
                 }
             };
-//L647563|11116666|25||c123|9999999999|test@test.com||||||||||7012066604TKBGHA
+//L647563|11116666|15||c123|9999999999|test@test.com||||||||||7012066604TKBGHA
 
             $(document).off('click', '#btnSubmit').on('click', '#btnSubmit', function(e) {
                 e.preventDefault();
-            
-                    var plainText = 'L647563|'+rand+'|25||c123|'+mobile_no+'|'+email+'||||||||||7012066604TKBGHA';
+
+                var plainText = 'L647563|'+rand+'|15||c123|'+mobile_no+'|'+email+'||||||||||7012066604TKBGHA';
                     var md = forge.md.sha256.create();  
                     md.start();  
                     md.update(plainText, "utf8");  
                     var hashText = md.digest().toHex();  
                     console.log("hash",hashText)
-              
+
                 var configJson = {
                     'tarCall': false,
                     'features': {
                         'showPGResponseMsg': true,
                         'enableExpressPay': true,
-                        'enableNewWindowFlow': true,    //for hybrid applications please disable this by passing false
+                        'enableNewWindowFlow': true,   //for hybrid applications please disable this by passing false
                         'payDetailsAtMerchantEnd':false
                     },
                     'consumerData': {
                         'deviceId': 'WEBSH1',	//possible values 'WEBSH1', 'WEBSH2' and 'WEBMD5'
                         'token': hashText,
-                        'returnUrl': 'http://budca.in/erp/links/public/api/payments?user_id='+value,
+                        'returnUrl': 'http://budca.in/erp/links/public/api/renewalpayments?user_id='+value,
                         'responseHandler': handleResponse,
                         'paymentMode': 'all',
                         'merchantLogoUrl': 'https://www.paynimo.com/CompanyDocs/company-logo-md.png',  //provided merchant logo will be displayed
@@ -89,9 +87,10 @@
                         'txnId': rand,   //Unique merchant transaction ID
                         'items': [{
                             'itemId': 'FIRST',
-                            'amount': '25',
+                            'amount': '15',
                             'comAmt': '0'
                         }],
+                        
                         'customStyle': {
                             'PRIMARY_COLOR_CODE': '#3977b7',   //merchant primary color code
                             'SECONDARY_COLOR_CODE': '#FFFFFF',   //provide merchant's suitable color code

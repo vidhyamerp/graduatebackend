@@ -63,8 +63,14 @@ Route::get('/api/index', 'RegisterController@index');
 Route::post('/api/resetpwd', 'RegisterController@reset');
 
 //payment gateway
-Route::get('/api/payment', 'RegisterController@payment')->name('payment');
-
+Route::get('/api/payment/registration', 'RegisterController@payment25')->name('payment25');
+Route::post('/api/payments', 'RegisterController@payments')->name('payments');
+Route::post('/api/renewalpayments', 'RegisterController@renewalpayments')->name('renewalpayments');
+Route::get('api/payment/renewal', 'RegisterController@payment15')->name('payment15');
+Route::get('/api/downloadreceipt/{id}','CommonController@downloadreceipt');
+Route::get('/api/checkpaymentregister/{id}','CommonController@checkpaymentregister');
+Route::get('/api/checkpaymentrenewal/{id}','CommonController@checkpaymentrenewal');
+Route::get('/api/downloadrenewalreceipt/{id}','CommonController@downloadrenewalreceipt');
 //Email OTP
 Route::post('/api/verifiy',  'RegisterController@sendotp');
 
